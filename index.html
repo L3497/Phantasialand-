@@ -112,10 +112,47 @@
   .add input{flex:1;min-width:150px}
   footer{color:var(--muted);font-size:.85rem;text-align:center;padding:24px 16px 40px}
   .hidden{display:none!important}
+  /* ---------- One-page PDF sheet ---------- */
+  #printSheet{position:absolute;left:-10000px;top:0;width:718px;background:#fff;color:#1e1b2e;font:12px/1.4 Inter,system-ui,sans-serif}
+  #printSheet *{box-sizing:border-box}
+  .ps-head{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 18px;border-radius:12px;color:#fff;
+    background:radial-gradient(120% 160% at 100% 0%,#e10915 0%,transparent 55%),linear-gradient(135deg,#1f1b3d,#5a1230)}
+  .ps-pill{display:inline-block;font-size:9px;border:1px solid rgba(255,255,255,.35);border-radius:99px;padding:1px 8px;margin-bottom:4px}
+  .ps-title{font-family:var(--display);font-weight:800;font-size:24px;line-height:1.1}
+  .ps-sub{opacity:.85;font-size:11px;margin-top:2px}
+  .ps-day{text-align:right}
+  .ps-day .st{font-size:20px;letter-spacing:1px}
+  .ps-day small{display:block;opacity:.8;font-size:9px;text-transform:uppercase;letter-spacing:.06em}
+  .ps-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}
+  .ps-stat{background:#f6f1ea;border-radius:10px;padding:7px 10px}
+  .ps-stat b{display:block;font-family:var(--display);font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ps-stat span{font-size:9px;color:#6e6a7c;text-transform:uppercase;letter-spacing:.05em}
+  .ps-row{display:grid;grid-template-columns:1.6fr 1fr;gap:8px;margin-bottom:10px}
+  .ps-box{border:1px solid #ece5da;border-radius:10px;padding:8px 10px}
+  .ps-box h3{margin:0 0 5px;font-family:var(--display);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#e10915}
+  .ps-qa{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px}
+  .ps-qa div small{display:block;color:#6e6a7c;font-size:8.5px;text-transform:uppercase;letter-spacing:.04em}
+  .ps-qa div p{margin:0;font-weight:500;word-break:break-word}
+  .ps-line{display:flex;justify-content:space-between;gap:8px;padding:1.5px 0}
+  .ps-line b{font-weight:700}
+  .ps-areas{columns:3;column-gap:12px}
+  .ps-area{break-inside:avoid;margin-bottom:10px;border-radius:8px;overflow:hidden;border:1px solid #ece5da}
+  .ps-area h4{margin:0;padding:6px 8px;font-size:12px;font-family:var(--display);font-weight:800;display:flex;justify-content:space-between;color:#1e1b2e}
+  .ps-ride{display:flex;align-items:center;gap:6px;padding:3.5px 8px;border-top:1px solid #f1ece4}
+  .ps-ride .n{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ps-ride .c{font-weight:700;min-width:20px;text-align:right}
+  .ps-ride .s{color:#ffb400;font-size:10px;letter-spacing:-.5px;min-width:44px;text-align:right}
+  .ps-ride.no{color:#a7a2b0}
+  .ps-ride.no .s{color:#ddd6cc}
+  .ps-coaster{font-size:8px}
+  .ps-foot{margin-top:6px;text-align:center;color:#a7a2b0;font-size:8.5px}
+  .st-on{color:#ffb400}.st-off{color:rgba(255,255,255,.35)}
   @media print{
-    .toolbar,.add,.music-card,.games,.counter button,.del,.chev,footer{display:none!important}
-    header{background:none;color:#000} header::after{display:none}
-    .ride{break-inside:avoid}
+    @page{size:A4;margin:10mm}
+    html,body{background:#fff!important}
+    body>*:not(#printSheet){display:none!important}
+    #printSheet{position:static;left:auto}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   }
 </style>
 </head>
@@ -151,7 +188,7 @@
       <option value="csv">CSV (Excel)</option>
       <option value="json">JSON (backup)</option>
       <option value="txt">Text</option>
-      <option value="print">Print / PDF</option>
+      <option value="print">PDF (1 page)</option>
     </select>
     <button class="primary" id="exportBtn">Export</button>
     <button id="importBtn">Import</button>
@@ -226,6 +263,8 @@
     </div>
   </div>
 </div>
+
+<div id="printSheet" aria-hidden="true"></div>
 
 <footer>Unofficial recap page for a company outing – not affiliated with Phantasialand. Your data is stored only in your own browser.</footer>
 
@@ -442,8 +481,62 @@ function exportData(){
     });
     txt+=`\nTotal: ${rows.reduce((a,r)=>a+r.rides,0)} rides\n`;
     download(file+".txt",txt,"text/plain;charset=utf-8");
-  } else window.print();
+  } else { buildPrint(); setTimeout(()=>window.print(),50); }
 }
+function escHtml(v){ return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function buildPrint(){
+  const sheet=document.getElementById("printSheet");
+  const date=new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+  const rides=allRides();
+  let total=0,done=0,sSum=0,sN=0,coasters=0,coastersDone=0,top=null;
+  rides.forEach(r=>{ const c=state.counts[r.id]||0,s=state.stars[r.id]||0; total+=c; if(c>0)done++; if(s){sSum+=s;sN++;}
+    if(isCoaster(r)){ coasters++; if(c>0) coastersDone++; }
+    if(c>0&&(!top||s>top.s||(s===top.s&&c>top.c))) top={name:r.name,s,c}; });
+  const most=rides.filter(r=>(state.counts[r.id]||0)>0).sort((a,b)=>(state.counts[b.id]||0)-(state.counts[a.id]||0)).slice(0,3);
+  const ans=id=>escHtml(state.recap[id]||"–");
+  let h=`<div class="ps-head"><div>
+      <span class="ps-pill">${escHtml(EVENT_NAME)}</span>
+      <div class="ps-title">🎢 Phantasialand Recap</div>
+      <div class="ps-sub">${escHtml(state.name||"Participant")} · ${date}</div></div>
+    <div class="ps-day"><small>My day</small><div class="st"><span class="st-on">${"★".repeat(state.day)}</span><span class="st-off">${"★".repeat(5-state.day)}</span></div></div></div>
+  <div class="ps-stats">
+    <div class="ps-stat"><b>${total}</b><span>Total rides</span></div>
+    <div class="ps-stat"><b>${done}/${rides.length}</b><span>Attractions</span></div>
+    <div class="ps-stat"><b>${coastersDone}/${coasters}</b><span>Coasters</span></div>
+    <div class="ps-stat"><b>${sN?(sSum/sN).toFixed(1)+" ★":"–"}</b><span>Avg. rating</span></div>
+    <div class="ps-stat"><b>${top?escHtml(top.name):"–"}</b><span>Favourite</span></div>
+  </div>
+  <div class="ps-row">
+    <div class="ps-box"><h3>My day</h3><div class="ps-qa">
+      <div><small>Highlight</small><p>${ans("qHighlight")}</p></div>
+      <div><small>Funniest moment</small><p>${ans("qFunny")}</p></div>
+      <div><small>Scariest ride</small><p>${ans("qScary")}</p></div>
+      <div><small>Day in three words</small><p>${ans("qWords")}</p></div></div></div>
+    <div class="ps-box"><h3>Most ridden</h3>
+      ${most.length?most.map((r,i)=>`<div class="ps-line"><span>${["🥇","🥈","🥉"][i]} ${escHtml(r.name)}</span><b>${state.counts[r.id]}×</b></div>`).join(""):'<div class="ps-line"><span>–</span></div>'}
+      <h3 style="margin-top:6px">Mini-games</h3>
+      <div class="ps-line"><span>🎢 Spin Coaster</span><b>${state.best||0}</b></div>
+      <div class="ps-line"><span>🍪 Catch the Cookies</span><b>${state.bestCookie||0}</b></div>
+      <div class="ps-line"><span>🧠 Memory</span><b>${state.bestMemory?state.bestMemory+" moves":"–"}</b></div>
+    </div>
+  </div>
+  <div class="ps-areas">`;
+  AREAS.forEach(a=>{
+    const list=rides.filter(r=>r.area.id===a.id).sort((x,y)=>isCoaster(y)-isCoaster(x));
+    const d=list.filter(r=>(state.counts[r.id]||0)>0).length;
+    h+=`<div class="ps-area"><h4 style="background:${a.color}22;border-left:4px solid ${a.color}"><span>${a.icon} ${escHtml(a.name)}</span><span>${d}/${list.length}</span></h4>`;
+    list.forEach(r=>{ const c=state.counts[r.id]||0,s=state.stars[r.id]||0;
+      h+=`<div class="ps-ride${c?"":" no"}"><span class="n">${escHtml(r.name)}${isCoaster(r)?' <span class="ps-coaster">🎢</span>':""}</span><span class="s">${s?"★".repeat(s)+"☆".repeat(5-s):""}</span><span class="c">${c?c+"×":"–"}</span></div>`; });
+    h+=`</div>`;
+  });
+  h+=`</div><div class="ps-foot">Phantasialand Recap · ${escHtml(EVENT_NAME)}</div>`;
+  sheet.innerHTML=h;
+  // shrink to fit one A4 page (277mm printable height ≈ 1046px at 96dpi)
+  sheet.style.zoom=1;
+  const MAXH=1030, hgt=sheet.scrollHeight;
+  if(hgt>MAXH) sheet.style.zoom=(MAXH/hgt).toFixed(3);
+}
+window.addEventListener("beforeprint",buildPrint);
 function importData(file){
   const reader=new FileReader();
   reader.onload=()=>{
@@ -765,9 +858,6 @@ document.getElementById("resetBtn").addEventListener("click",()=>{
 function setAll(open){ document.querySelectorAll("details.area").forEach(d=>{ d.open=open; state.open[d.dataset.area]=open; }); save(); }
 document.getElementById("expandBtn").addEventListener("click",()=>setAll(true));
 document.getElementById("collapseBtn").addEventListener("click",()=>setAll(false));
-let printOpen=[];
-window.addEventListener("beforeprint",()=>{ searching=true; printOpen=[...document.querySelectorAll("details.area")].map(d=>d.open); document.querySelectorAll("details.area").forEach(d=>d.open=true); });
-window.addEventListener("afterprint",()=>{ document.querySelectorAll("details.area").forEach((d,i)=>d.open=printOpen[i]); setTimeout(()=>searching=false,0); });
 const areaSel=document.getElementById("addArea");
 AREAS.forEach(a=>areaSel.add(new Option(a.name,a.id)));
 document.getElementById("addForm").addEventListener("submit",e=>{
