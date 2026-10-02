@@ -4,70 +4,117 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Phantasialand Recap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#f6f4f2; --card:#fff; --text:#1d1b1a; --muted:#6b6560; --line:#e5e0da;
-    --accent:#d0021b; --star:#f2b01e; --chip:#f0ebe6;
+    --bg:#faf6f0; --card:#ffffff; --text:#1e1b2e; --muted:#6e6a7c; --line:#ece5da; --chip:#f4eee5;
+    --accent:#e10915; --star:#ffb400;
+    --hero1:#1f1b3d; --hero2:#5a1230;
+    --shadow:0 1px 2px rgba(30,27,46,.05),0 8px 24px rgba(30,27,46,.07);
+    --display:"Bricolage Grotesque",system-ui,sans-serif;
   }
   @media (prefers-color-scheme: dark){
-    :root{ --bg:#141312; --card:#1e1c1a; --text:#f0ece8; --muted:#a39d96; --line:#34302c; --chip:#2a2724; }
+    :root{ --bg:#12111a; --card:#1c1a27; --text:#f2eff8; --muted:#a7a2b8; --line:#2c293a; --chip:#262335;
+           --shadow:0 1px 2px rgba(0,0,0,.3); }
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-  header{background:linear-gradient(135deg,#8f0012,#d0021b 60%,#e8452c);color:#fff;padding:26px 16px 22px}
-  header .event{display:inline-block;background:rgba(255,255,255,.18);border-radius:999px;padding:3px 12px;font-size:.85rem;margin-bottom:8px}
-  header h1{margin:0 0 4px;font-size:1.8rem}
-  header p{margin:0;opacity:.92;font-size:1.05rem}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  h1,h2,.area-title{font-family:var(--display)}
   .wrap{max-width:900px;margin:0 auto;padding:0 16px}
-  .player-name{margin-top:14px;display:flex}
-  .player-name input{flex:1;border:none}
-  .stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-  .stat{background:rgba(255,255,255,.15);border-radius:10px;padding:8px 12px;min-width:110px}
-  .stat b{display:block;font-size:1.3rem}
 
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:16px}
+  /* Header */
+  header{position:relative;overflow:hidden;color:#fff;padding:30px 16px 26px;
+    background:radial-gradient(120% 140% at 100% 0%,#e10915 0%,transparent 55%),
+               radial-gradient(90% 120% at 0% 100%,#ff8a3d55 0%,transparent 60%),
+               linear-gradient(135deg,var(--hero1),var(--hero2));}
+  header::after{content:"";position:absolute;right:-40px;bottom:-60px;width:260px;height:180px;opacity:.18;
+    background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 180'%3E%3Cpath d='M0 150 C40 150 50 40 90 40 S130 120 150 120 S190 20 220 20 S250 90 260 90' fill='none' stroke='white' stroke-width='6'/%3E%3Cg stroke='white' stroke-width='3'%3E%3Cpath d='M30 145V180M60 100V180M90 42V180M120 95V180M150 120V180M180 60V180M220 22V180M250 80V180'/%3E%3C/g%3E%3C/svg%3E");}
+  header .wrap{position:relative;z-index:1}
+  header .event{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 12px;font-size:.8rem;letter-spacing:.02em;margin-bottom:10px}
+  header h1{margin:0 0 4px;font-size:2.1rem;font-weight:800;letter-spacing:-.01em}
+  header p{margin:0;opacity:.88;font-size:1.05rem}
+  .player-name{margin-top:16px;display:flex}
+  .player-name input{flex:1;border:1px solid rgba(255,255,255,.3)!important;background:rgba(255,255,255,.12)!important;color:#fff!important}
+  .player-name input::placeholder{color:rgba(255,255,255,.7)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px}
+  .stat{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:10px 12px;font-size:.8rem;opacity:.95;min-width:0}
+  .stat b{display:block;font-family:var(--display);font-size:1.35rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* Cards */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:16px;box-shadow:var(--shadow)}
   .card h2{margin:0 0 10px;font-size:1.2rem}
   .music{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .music .title{flex:1;min-width:140px;font-size:.9rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .music .title b{color:var(--text)}
-  .music input[type=range]{width:100px}
+  .music input[type=range]{width:100px;accent-color:var(--accent)}
+  .recap label{display:block;font-weight:600;margin:12px 0 4px;font-size:.92rem}
+  .recap textarea,.recap input[type=text]{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);resize:vertical}
+  .recap textarea:focus,.recap input:focus,input:focus,select:focus{outline:2px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:1px}
+  .games canvas{width:100%;height:280px;display:block;border-radius:12px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer}
+  .games .hint{font-size:.85rem;color:var(--muted);margin:8px 0 0}
+  .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 12px}
+  .tab{border-radius:12px;background:var(--chip);border-color:transparent;font-size:.85rem;line-height:1.25;padding:8px 6px}
+  .tab.active{background:var(--accent);color:#fff}
+  .mem-head{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:.9rem;color:var(--muted);margin-bottom:10px}
+  .mem-head b{color:var(--text);font-family:var(--display)}
+  .mem-head button{margin-left:auto}
+  .mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:420px;margin:0 auto}
+  .mem-card{aspect-ratio:1;border-radius:12px;font-size:1.9rem;padding:0;display:grid;place-items:center;border:none;
+    background:linear-gradient(135deg,var(--hero1),var(--hero2));color:transparent;box-shadow:var(--shadow);transition:transform .2s,background .2s}
+  .mem-card::after{content:"?";color:rgba(255,255,255,.55);font-family:var(--display);font-weight:800;font-size:1.4rem;grid-area:1/1}
+  .mem-card span{grid-area:1/1}
+  .mem-card.open,.mem-card.matched{background:var(--chip);color:inherit;transform:rotateY(0)}
+  .mem-card.open::after,.mem-card.matched::after{content:""}
+  .mem-card.matched{background:color-mix(in srgb,#2f9e44 18%,var(--card))}
+  .section-title{font-size:1.25rem;margin:22px 0 4px}
 
-  .recap label{display:block;font-weight:600;margin:10px 0 4px;font-size:.95rem}
-  .recap textarea,.recap input[type=text]{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);resize:vertical}
-
-  .game canvas{width:100%;height:260px;display:block;border-radius:10px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer}
-  .game .hint{font-size:.85rem;color:var(--muted);margin:8px 0 0}
-
-  .toolbar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0;margin-top:16px}
+  /* Toolbar */
+  .toolbar{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 0;margin-top:18px}
   .toolbar .wrap{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  input[type=search],input[type=text],select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text)}
+  input[type=search],input[type=text],select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
   input[type=search]{flex:1;min-width:160px}
-  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:8px;padding:8px 12px}
+  button{font:inherit;font-weight:500;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;padding:8px 12px;transition:transform .08s,filter .15s}
+  button:active{transform:scale(.97)}
   button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-  button:hover{filter:brightness(.97)}
+  button:hover{filter:brightness(.96)}
 
-  section.area{margin:22px 0}
-  .area h2{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:1.2rem}
-  .area h2 small{color:var(--muted);font-weight:normal;font-size:.85rem;margin-left:auto}
-  .ride{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;flex-wrap:wrap}
-  .ride.done{border-left:4px solid var(--accent)}
+  /* Areas */
+  details.area{--c:#888;margin:14px 0;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+  details.area>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:14px 16px;border-left:5px solid var(--c)}
+  details.area>summary::-webkit-details-marker{display:none}
+  .area-icon{width:40px;height:40px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;background:color-mix(in srgb,var(--c) 16%,transparent)}
+  .area-head{flex:1;min-width:0}
+  .area-title{font-weight:800;font-size:1.12rem;line-height:1.2}
+  .area-meta{font-size:.82rem;color:var(--muted)}
+  .bar{height:6px;border-radius:99px;background:var(--chip);margin-top:6px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--c);transition:width .3s}
+  .chev{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:var(--muted);background:var(--chip);transition:transform .2s}
+  details.area[open] .chev{transform:rotate(180deg)}
+  .area-body{padding:4px 12px 12px;border-left:5px solid var(--c)}
+
+  .ride{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;flex-wrap:wrap}
+  .ride.done{background:color-mix(in srgb,var(--c) 7%,var(--card));border-color:color-mix(in srgb,var(--c) 35%,var(--line))}
   .info{flex:1;min-width:160px}
   .info .name{font-weight:600}
-  .info .type{font-size:.8rem;color:var(--muted);background:var(--chip);border-radius:6px;padding:1px 6px;display:inline-block;margin-top:2px}
+  .info .type{font-size:.75rem;color:var(--muted);background:var(--chip);border-radius:6px;padding:1px 7px;display:inline-block;margin-top:3px}
+  .ride.coaster .type{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--text);font-weight:600}
   .counter{display:flex;align-items:center;gap:6px}
-  .counter button{width:34px;height:34px;padding:0;border-radius:50%;font-size:1.1rem;line-height:1}
-  .counter input{width:52px;text-align:center;padding:6px;font:inherit;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text)}
+  .counter button{width:34px;height:34px;padding:0;border-radius:50%;font-size:1.1rem;line-height:1;background:var(--card)}
+  .counter button[data-act=plus]{background:var(--c);border-color:var(--c);color:#fff}
+  .counter input{width:52px;text-align:center;padding:6px;font:inherit;font-weight:600;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
   .stars{display:flex;gap:2px}
-  .stars button{border:none;background:none;padding:2px;font-size:1.45rem;line-height:1;color:var(--line)}
+  .stars button{border:none;background:none;padding:2px;font-size:1.45rem;line-height:1;color:color-mix(in srgb,var(--muted) 35%,transparent)}
   .stars button.on{color:var(--star)}
   .del{border:none;background:none;color:var(--muted);font-size:1.1rem;padding:4px}
-  .add{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:14px;margin:26px 0;display:flex;gap:8px;flex-wrap:wrap}
+  .add{background:var(--card);border:1px dashed var(--line);border-radius:16px;padding:14px;margin:26px 0;display:flex;gap:8px;flex-wrap:wrap}
   .add input{flex:1;min-width:150px}
   footer{color:var(--muted);font-size:.85rem;text-align:center;padding:24px 16px 40px}
   .hidden{display:none!important}
   @media print{
-    .toolbar,.add,.music-card,.game,.counter button,.del,footer{display:none!important}
-    header{background:none;color:#000}
+    .toolbar,.add,.music-card,.games,.counter button,.del,.chev,footer{display:none!important}
+    header{background:none;color:#000} header::after{display:none}
     .ride{break-inside:avoid}
   }
 </style>
@@ -91,39 +138,7 @@
   </div>
 </header>
 
-<div class="wrap">
-  <div class="card music-card">
-    <div class="music">
-      <button type="button" id="playBtn" class="primary">▶ Play</button>
-      <div class="title" id="songTitle">No song loaded</div>
-      <input type="range" id="volume" min="0" max="1" step="0.05" value="0.6" aria-label="Volume">
-      <button type="button" id="uploadSongBtn">🎵 Upload song</button>
-      <input type="file" id="songFile" accept="audio/*" class="hidden">
-      <audio id="audio" loop></audio>
-    </div>
-  </div>
-
-  <div class="card recap">
-    <h2>📝 Your day</h2>
-    <label>Rate your day overall</label>
-    <div class="stars" id="dayStars"></div>
-    <label for="qHighlight">What was your highlight?</label>
-    <textarea id="qHighlight" rows="2" placeholder="The moment you'll remember…"></textarea>
-    <label for="qFunny">Funniest moment?</label>
-    <textarea id="qFunny" rows="2" placeholder="Something that made you laugh…"></textarea>
-    <label for="qScary">Scariest ride?</label>
-    <input type="text" id="qScary" placeholder="Be honest 😅">
-    <label for="qWords">Your day in three words</label>
-    <input type="text" id="qWords" placeholder="e.g. loud, wet, legendary">
-  </div>
-
-  <div class="card game">
-    <h2>🎮 Mini-game: Spin Coaster</h2>
-    <canvas id="game"></canvas>
-    <p class="hint">Tap / Space = jump over the gaps · Hold in the air = spin · Land upright! Every full spin = +100 points.</p>
-  </div>
-</div>
-
+<div class="attractions">
 <div class="toolbar">
   <div class="wrap">
     <input type="search" id="search" placeholder="Search attractions…">
@@ -140,12 +155,14 @@
     </select>
     <button class="primary" id="exportBtn">Export</button>
     <button id="importBtn">Import</button>
+    <button id="expandBtn" type="button">Expand all</button>
+    <button id="collapseBtn" type="button">Collapse all</button>
     <button id="resetBtn">Reset</button>
     <input type="file" id="importFile" accept=".json" class="hidden">
   </div>
 </div>
 
-<main class="wrap" id="list"></main>
+<main class="wrap" id="list"><h2 class="section-title">🎢 Attractions</h2></main>
 
 <div class="wrap">
   <form class="add" id="addForm">
@@ -153,6 +170,61 @@
     <select id="addArea"></select>
     <button class="primary" type="submit">Add</button>
   </form>
+</div>
+</div>
+
+<div class="wrap">
+  <div class="card recap">
+    <h2>📝 Your day</h2>
+    <label>Rate your day overall</label>
+    <div class="stars" id="dayStars"></div>
+    <label for="qHighlight">What was your highlight?</label>
+    <textarea id="qHighlight" rows="2" placeholder="The moment you'll remember…"></textarea>
+    <label for="qFunny">Funniest moment?</label>
+    <textarea id="qFunny" rows="2" placeholder="Something that made you laugh…"></textarea>
+    <label for="qScary">Scariest ride?</label>
+    <input type="text" id="qScary" placeholder="Be honest 😅">
+    <label for="qWords">Your day in three words</label>
+    <input type="text" id="qWords" placeholder="e.g. loud, wet, legendary">
+  </div>
+
+  <div class="card music-card">
+    <div class="music">
+      <button type="button" id="playBtn" class="primary">▶ Play</button>
+      <div class="title" id="songTitle">No song loaded</div>
+      <input type="range" id="volume" min="0" max="1" step="0.05" value="0.6" aria-label="Volume">
+      <button type="button" id="uploadSongBtn">🎵 Upload song</button>
+      <input type="file" id="songFile" accept="audio/*" class="hidden">
+      <audio id="audio" loop></audio>
+    </div>
+  </div>
+
+  <div class="card games">
+    <h2>🎮 Mini-games</h2>
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab active" data-tab="spin">🎢 Spin Coaster</button>
+      <button type="button" class="tab" data-tab="cookie">🍪 Catch the Cookies</button>
+      <button type="button" class="tab" data-tab="memory">🧠 Coaster Memory</button>
+    </div>
+    <div class="panel" data-panel="spin">
+      <canvas id="game"></canvas>
+      <p class="hint">Tap / Space = jump over the gaps · Hold in the air = spin · Land upright! Every full spin = +100 points.</p>
+    </div>
+    <div class="panel hidden" data-panel="cookie">
+      <canvas id="cookie"></canvas>
+      <p class="hint">Drag your finger or use ← → to move the coaster car. Catch 🍪 (+10) and golden cookies (+50), dodge the 🥦! Every missed cookie costs a heart.</p>
+    </div>
+    <div class="panel hidden" data-panel="memory">
+      <div class="mem-head">
+        <span>Moves <b id="memMoves">0</b></span>
+        <span>Pairs <b id="memPairs">0/8</b></span>
+        <span>Best <b id="memBest">–</b></span>
+        <button type="button" id="memNew">New game</button>
+      </div>
+      <div class="mem-grid" id="memGrid"></div>
+      <p class="hint" id="memMsg">Find all 8 pairs with as few moves as possible.</p>
+    </div>
+  </div>
 </div>
 
 <footer>Unofficial recap page for a company outing – not affiliated with Phantasialand. Your data is stored only in your own browser.</footer>
@@ -166,29 +238,22 @@ const SONG_TITLE = "Event song";
 /* ==================================================== */
 
 const AREAS = [
-  { id:"berlin",   name:"Berlin",        icon:"🏛️", rides:[
-      ["Maus au Chocolat","Dark ride"],
-      ["The 3 Mouseketeers (Residenz Theater)","4D cinema"],
-      ["Horse Carousel","Carousel"] ]},
-  { id:"rookburgh",name:"Rookburgh",     icon:"⚙️", rides:[
-      ["F.L.Y.","Roller coaster"] ]},
-  { id:"china",    name:"China Town",    icon:"🏮", rides:[
-      ["Feng Ju Palace","Themed ride"],
-      ["Geister Rikscha","Dark ride"] ]},
-  { id:"africa",   name:"Deep in Africa",icon:"🌍", rides:[
-      ["Black Mamba","Roller coaster"],
-      ["Deep in Africa: Adventure Trail","Adventure trail"] ]},
-  { id:"mexico",   name:"Mexico",        icon:"🌵", rides:[
-      ["Chiapas","Water ride"],
-      ["Colorado Adventure","Roller coaster"],
-      ["Talocan","Thrill ride"],
-      ["Tikal","Drop tower"] ]},
-  { id:"mystery",  name:"Mystery & Klugheim", icon:"🗿", rides:[
+  { id:"mystery",  name:"Mystery & Klugheim", icon:"🗿", color:"#0f8b8d", rides:[
       ["Taron","Roller coaster"],
       ["Raik","Roller coaster"],
       ["Mystery Castle","Drop tower"],
       ["River Quest","Water ride"] ]},
-  { id:"fantasy",  name:"Fantasy & Wuze Town", icon:"🧚", rides:[
+  { id:"rookburgh",name:"Rookburgh",     icon:"⚙️", color:"#b5763a", rides:[
+      ["F.L.Y.","Roller coaster"] ]},
+  { id:"africa",   name:"Deep in Africa",icon:"🌍", color:"#d98e04", rides:[
+      ["Black Mamba","Roller coaster"],
+      ["Deep in Africa: Adventure Trail","Adventure trail"] ]},
+  { id:"mexico",   name:"Mexico",        icon:"🌵", color:"#d1495b", rides:[
+      ["Colorado Adventure","Roller coaster"],
+      ["Chiapas","Water ride"],
+      ["Talocan","Thrill ride"],
+      ["Tikal","Drop tower"] ]},
+  { id:"fantasy",  name:"Fantasy & Wuze Town", icon:"🧚", color:"#8e5bd6", rides:[
       ["Winja's Fear","Roller coaster"],
       ["Winja's Force","Roller coaster"],
       ["Crazy Bats","Roller coaster (VR)"],
@@ -208,7 +273,14 @@ const AREAS = [
       ["Wirtl's Taubenturm","Kids ride"],
       ["Die fröhliche Bienchenjagd","Kids ride"],
       ["Der lustige Papagei","Kids ride"] ]},
-  { id:"shows",    name:"Shows",         icon:"🎭", rides:[
+  { id:"china",    name:"China Town",    icon:"🏮", color:"#c0392b", rides:[
+      ["Feng Ju Palace","Themed ride"],
+      ["Geister Rikscha","Dark ride"] ]},
+  { id:"berlin",   name:"Berlin",        icon:"🏛️", color:"#3a6ea5", rides:[
+      ["Maus au Chocolat","Dark ride"],
+      ["The 3 Mouseketeers (Residenz Theater)","4D cinema"],
+      ["Horse Carousel","Carousel"] ]},
+  { id:"shows",    name:"Shows",         icon:"🎭", color:"#e05297", rides:[
       ["Jump","Show"],
       ["Tiempo de Fuego","Show"],
       ["Nobis","Show"],
@@ -217,7 +289,7 @@ const AREAS = [
 
 const KEY = "phl-recap-v1";
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,"-");
-let state = { name:"", counts:{}, stars:{}, custom:[], day:0, recap:{}, best:0 };
+let state = { name:"", counts:{}, stars:{}, custom:[], day:0, recap:{}, best:0, bestCookie:0, bestMemory:0, open:{} };
 const RECAP_Q = [
   ["qHighlight","Highlight"], ["qFunny","Funniest moment"],
   ["qScary","Scariest ride"], ["qWords","Day in three words"] ];
@@ -234,13 +306,24 @@ function allRides(){
   });
   return out;
 }
+const isCoaster = r => /roller coaster/i.test(r.type);
 function render(){
-  const list=document.getElementById("list"); list.innerHTML="";
+  const list=document.getElementById("list"); list.innerHTML='<h2 class="section-title">🎢 Attractions</h2>';
+  if(!state.open) state.open={};
   AREAS.forEach(a=>{
-    const sec=document.createElement("section");
-    sec.className="area";
-    sec.innerHTML=`<h2>${a.icon} ${a.name}<small></small></h2>`;
-    allRides().filter(r=>r.area.id===a.id).forEach(r=>sec.appendChild(rideRow(r)));
+    const sec=document.createElement("details");
+    sec.className="area"; sec.dataset.area=a.id; sec.style.setProperty("--c",a.color);
+    sec.open=!!state.open[a.id];
+    sec.innerHTML=`<summary>
+        <span class="area-icon">${a.icon}</span>
+        <span class="area-head"><div class="area-title">${a.name}</div>
+          <div class="area-meta"></div><div class="bar"><i></i></div></span>
+        <span class="chev">▾</span></summary><div class="area-body"></div>`;
+    const body=sec.querySelector(".area-body");
+    allRides().filter(r=>r.area.id===a.id)
+      .sort((x,y)=>isCoaster(y)-isCoaster(x))
+      .forEach(r=>body.appendChild(rideRow(r)));
+    sec.addEventListener("toggle",()=>{ if(!searching){ state.open[a.id]=sec.open; save(); } });
     list.appendChild(sec);
   });
   applyFilter(); updateStats(); renderRecap();
@@ -248,7 +331,7 @@ function render(){
 function starButtons(n){ return [1,2,3,4,5].map(i=>`<button type="button" data-star="${i}" class="${i<=n?"on":""}" aria-label="${i} stars">★</button>`).join(""); }
 function rideRow(r){
   const row=document.createElement("div");
-  row.className="ride"; row.dataset.id=r.id; row.dataset.name=r.name.toLowerCase();
+  row.className="ride"+(isCoaster(r)?" coaster":""); row.dataset.id=r.id; row.dataset.name=r.name.toLowerCase();
   const count=state.counts[r.id]||0, stars=state.stars[r.id]||0;
   row.innerHTML=`
     <div class="info"><div class="name"></div><span class="type"></span></div>
@@ -281,10 +364,12 @@ function rideRow(r){
   input.addEventListener("change",()=>setCount(input.value));
   return row;
 }
+let searching=false;
 function applyFilter(){
   const q=document.getElementById("search").value.trim().toLowerCase();
   const f=document.getElementById("filter").value;
-  document.querySelectorAll("section.area").forEach(sec=>{
+  searching=true;
+  document.querySelectorAll("details.area").forEach(sec=>{
     let visible=0,rides=0,done=0; const rows=sec.querySelectorAll(".ride");
     rows.forEach(row=>{
       const c=state.counts[row.dataset.id]||0; rides+=c; if(c>0) done++;
@@ -292,9 +377,15 @@ function applyFilter(){
       row.classList.toggle("hidden",!show); if(show) visible++;
     });
     sec.classList.toggle("hidden",visible===0);
-    sec.querySelector("small").textContent=`${done}/${rows.length} ridden · ${rides} rides`;
+    sec.querySelector(".area-meta").textContent=`${done}/${rows.length} ridden · ${rides} rides`;
+    sec.querySelector(".bar i").style.width=(rows.length?done/rows.length*100:0)+"%";
+    if(q) sec.open=visible>0;
+    else if(lastQuery) sec.open=!!state.open[sec.dataset.area];
   });
+  lastQuery=q;
+  setTimeout(()=>{ searching=false; },0);
 }
+let lastQuery="";
 function updateStats(){
   const rides=allRides(); let total=0,done=0,sSum=0,sN=0,top=null;
   rides.forEach(r=>{
@@ -332,7 +423,7 @@ function exportData(){
   const who=state.name||"participant";
   const file=`phantasialand-recap-${slug(who)}-${date}`;
   const rows=allRides().map(r=>({area:r.area.name,attraction:r.name,type:r.type,rides:state.counts[r.id]||0,stars:state.stars[r.id]||0}));
-  const recap=[["Day rating",state.day+"/5"]].concat(RECAP_Q.map(([id,label])=>[label,state.recap[id]||""])).concat([["Spin Coaster best score",state.best]]);
+  const recap=[["Day rating",state.day+"/5"]].concat(RECAP_Q.map(([id,label])=>[label,state.recap[id]||""])).concat([["Spin Coaster best score",state.best],["Catch the Cookies best score",state.bestCookie],["Coaster Memory best (moves)",state.bestMemory||"–"]]);
   if(fmt==="csv"){
     const esc=v=>`"${String(v).replace(/"/g,'""')}"`;
     const lines=[["Event",EVENT_NAME],["Name",who],["Date",date]].concat(recap).map(r=>r.map(esc).join(";"));
@@ -343,7 +434,7 @@ function exportData(){
     download(file+".json",JSON.stringify({event:EVENT_NAME,name:who,exported:date,recap:Object.fromEntries(recap),state,list:rows},null,2),"application/json");
   } else if(fmt==="txt"){
     let txt=`PHANTASIALAND RECAP – ${EVENT_NAME}\n${who} · ${date}\n\n`;
-    recap.forEach(([k,v])=>{ if(v!==""&&v!=="0/5") txt+=`${k}: ${v}\n`; });
+    recap.forEach(([k,v])=>{ if(v!==""&&v!=="0/5"&&v!==0&&v!=="–") txt+=`${k}: ${v}\n`; });
     let last="";
     rows.filter(r=>r.rides>0||r.stars>0).forEach(r=>{
       if(r.area!==last){ txt+=`\n== ${r.area} ==\n`; last=r.area; }
@@ -358,7 +449,7 @@ function importData(file){
   reader.onload=()=>{
     try{
       const d=JSON.parse(reader.result); const s=d.state||d; if(!s.counts) throw 0;
-      state=Object.assign({name:"",counts:{},stars:{},custom:[],day:0,recap:{},best:0},s);
+      state=Object.assign({name:"",counts:{},stars:{},custom:[],day:0,recap:{},best:0,bestCookie:0,bestMemory:0,open:{}},s); updateMemBest&&updateMemBest();
       document.getElementById("playerName").value=state.name;
       save(); render(); alert("Import successful!");
     }catch(e){ alert("Could not read this file. Please choose a JSON backup file."); }
@@ -397,11 +488,23 @@ document.getElementById("songFile").addEventListener("change",e=>{
   audio.play().catch(()=>{}); e.target.value="";
 });
 
-/* ---------- Mini-game: Spin Coaster ---------- */
+/* ---------- Mini-games ---------- */
+const GAMES={}; let activeTab="spin";
+function typing(){ const t=document.activeElement&&document.activeElement.tagName; return t==="INPUT"||t==="TEXTAREA"||t==="SELECT"; }
+document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{
+  if(btn.dataset.tab===activeTab) return;
+  GAMES[activeTab]&&GAMES[activeTab].hide();
+  activeTab=btn.dataset.tab;
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b===btn));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("hidden",p.dataset.panel!==activeTab));
+  GAMES[activeTab]&&GAMES[activeTab].show();
+}));
+
+/* Spin Coaster */
 (function(){
   const cv=document.getElementById("game"), ctx=cv.getContext("2d");
   let W=600,H=260,dpr=1;
-  function resize(){ dpr=window.devicePixelRatio||1; W=cv.clientWidth; H=cv.clientHeight; cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); if(!running) draw(); }
+  function resize(){ dpr=window.devicePixelRatio||1; if(!cv.clientWidth) return; W=cv.clientWidth; H=cv.clientHeight; cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); if(!running) draw(); }
   window.addEventListener("resize",resize);
 
   const CAR_X=90, G=0.45, JUMP=-9.2, SPIN=0.17;
@@ -427,7 +530,7 @@ document.getElementById("songFile").addEventListener("change",e=>{
   function release(){ holding=false; }
   cv.addEventListener("pointerdown",e=>{ e.preventDefault(); press(); });
   window.addEventListener("pointerup",release);
-  window.addEventListener("keydown",e=>{ if(e.code==="Space" && document.activeElement.tagName!=="INPUT" && document.activeElement.tagName!=="TEXTAREA"){ e.preventDefault(); if(!e.repeat) press(); } });
+  window.addEventListener("keydown",e=>{ if(e.code==="Space" && activeTab==="spin" && !typing()){ e.preventDefault(); if(!e.repeat) press(); } });
   window.addEventListener("keyup",e=>{ if(e.code==="Space") release(); });
 
   function crash(){
@@ -471,11 +574,11 @@ document.getElementById("songFile").addEventListener("change",e=>{
   function draw(){
     const dark=matchMedia("(prefers-color-scheme: dark)").matches;
     const g=ctx.createLinearGradient(0,0,0,H);
-    g.addColorStop(0,dark?"#1b2340":"#8fd0ff"); g.addColorStop(1,dark?"#3a2b4a":"#ffe3c2");
+    g.addColorStop(0,dark?"#1f1b3d":"#9ad8ff"); g.addColorStop(1,dark?"#5a1230":"#ffd9b8");
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
 
     // distant hills
-    ctx.fillStyle=dark?"#2a2f45":"#bfe3c0";
+    ctx.fillStyle=dark?"#2c2648":"#b9e4c9";
     ctx.beginPath(); ctx.moveTo(0,H);
     for(let x=0;x<=W;x+=10) ctx.lineTo(x,H*0.55+20*Math.sin((x+(cam||0)*0.3)*0.01));
     ctx.lineTo(W,H); ctx.fill();
@@ -486,7 +589,7 @@ document.getElementById("songFile").addEventListener("change",e=>{
     const off=cam%40;
     for(let sx=-off;sx<W;sx+=40){ const wx=cam+sx; if(inGap(wx)) continue; ctx.beginPath(); ctx.moveTo(sx,track(wx)+4); ctx.lineTo(sx,H); ctx.stroke(); }
     // rails
-    ctx.strokeStyle="#d0021b"; ctx.lineWidth=5; ctx.lineCap="round";
+    ctx.strokeStyle="#e10915"; ctx.lineWidth=5; ctx.lineCap="round";
     ctx.beginPath(); let drawing=false;
     for(let sx=0;sx<=W;sx+=4){
       const wx=cam+sx;
@@ -501,7 +604,7 @@ document.getElementById("songFile").addEventListener("change",e=>{
     ctx.fillStyle="#ffcc00"; ctx.beginPath(); ctx.arc(-6,-24,7,0,Math.PI*2); ctx.fill();      // rider head
     ctx.fillStyle="#ffcc00"; ctx.beginPath(); ctx.arc(10,-24,7,0,Math.PI*2); ctx.fill();
     ctx.fillStyle="#1d1b1a"; ctx.fillRect(-22,-20,44,16);                                      // body
-    ctx.fillStyle="#d0021b"; ctx.fillRect(-22,-20,44,5);
+    ctx.fillStyle="#e10915"; ctx.fillRect(-22,-20,44,5);
     ctx.fillStyle="#333"; ctx.beginPath(); ctx.arc(-13,-3,4,0,Math.PI*2); ctx.arc(13,-3,4,0,Math.PI*2); ctx.fill();
     ctx.restore();
 
@@ -521,7 +624,131 @@ document.getElementById("songFile").addEventListener("change",e=>{
     }
   }
   resize();
+  GAMES.spin={ show:resize, hide(){ if(running){ running=false; over=false; holding=false; draw(); } } };
 })();
+
+/* Catch the Cookies */
+(function(){
+  const cv=document.getElementById("cookie"), ctx=cv.getContext("2d");
+  let W=600,H=280;
+  const CAR_W=74;
+  let running=false, over=false, px=300, items=[], score=0, lives=3, spawnT=0, last=0, t0=0, flash=0, popups=[], keys={};
+  function resize(){ const dpr=window.devicePixelRatio||1; if(!cv.clientWidth) return; W=cv.clientWidth; H=cv.clientHeight; cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); px=Math.min(px,W-CAR_W/2); if(!running) draw(); }
+  window.addEventListener("resize",()=>{ if(activeTab==="cookie") resize(); });
+  function start(){ items=[]; score=0; lives=3; spawnT=20; flash=0; popups=[]; over=false; px=W/2; running=true; t0=last=performance.now(); requestAnimationFrame(loop); }
+  function spawn(el){
+    const r=Math.random(), kind=r<0.16?"broc":r<0.26?"gold":"cookie";
+    items.push({x:22+Math.random()*(W-44), y:-24, vy:1.7+Math.random()*1.1+el*0.035, kind, rot:Math.random()*6, vr:(Math.random()-.5)*0.12});
+  }
+  function pop(txt,x,y,c){ popups.push({txt,x,y,c,life:45}); }
+  function loop(t){
+    if(!running) return;
+    const k=Math.min(3,(t-last)/16.67); last=t;
+    const el=(t-t0)/1000, carY=H-36;
+    if(keys.ArrowLeft) px-=8*k; if(keys.ArrowRight) px+=8*k;
+    px=Math.max(CAR_W/2,Math.min(W-CAR_W/2,px));
+    spawnT-=k; if(spawnT<=0){ spawn(el); spawnT=Math.max(13,42-el*0.7); }
+    items.forEach(it=>{
+      it.y+=it.vy*k; it.rot+=it.vr*k;
+      if(!it.done && it.y>carY-26 && it.y<carY+6 && Math.abs(it.x-px)<CAR_W/2+6){
+        it.done=true;
+        if(it.kind==="broc"){ lives--; flash=14; pop("−1 ♥",it.x,carY-30,"#2f9e44"); if(navigator.vibrate) navigator.vibrate(80); }
+        else { const p=it.kind==="gold"?50:10; score+=p; pop("+"+p,it.x,carY-30,it.kind==="gold"?"#d99a00":"#e10915"); }
+      }
+      if(!it.done && it.y>H+24){ it.done=true; if(it.kind!=="broc"){ lives--; flash=14; } }
+    });
+    items=items.filter(it=>!it.done);
+    popups.forEach(p=>{p.life-=k;p.y-=0.8*k;}); popups=popups.filter(p=>p.life>0);
+    if(flash>0) flash-=k;
+    if(lives<=0){ running=false; over=true; if(score>state.bestCookie){ state.bestCookie=score; save(); } }
+    draw(); if(running) requestAnimationFrame(loop);
+  }
+  function emoji(ch,x,y,size,rot){ ctx.save(); ctx.translate(x,y); ctx.rotate(rot||0); ctx.font=size+"px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(ch,0,0); ctx.restore(); }
+  function draw(){
+    const dark=matchMedia("(prefers-color-scheme: dark)").matches;
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,dark?"#2a1d3d":"#ffe9d6"); g.addColorStop(1,dark?"#5a1230":"#ffc9c0");
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    // little fairground lights
+    for(let i=0;i<W;i+=28){ ctx.fillStyle=["#ffcc00","#e10915","#8e5bd6","#0f8b8d"][(i/28)%4|0]; ctx.globalAlpha=.55; ctx.beginPath(); ctx.arc(i+14,10+4*Math.sin(i),3,0,Math.PI*2); ctx.fill(); }
+    ctx.globalAlpha=1;
+    // rail
+    const carY=H-36;
+    ctx.strokeStyle="#e10915"; ctx.lineWidth=5; ctx.beginPath(); ctx.moveTo(0,carY+12); ctx.lineTo(W,carY+12); ctx.stroke();
+    ctx.strokeStyle=dark?"#6b6f80":"#8a8f99"; ctx.lineWidth=2;
+    for(let x=10;x<W;x+=36){ ctx.beginPath(); ctx.moveTo(x,carY+14); ctx.lineTo(x,H); ctx.stroke(); }
+    // items
+    items.forEach(it=>{
+      if(it.kind==="gold"){ ctx.fillStyle="rgba(255,196,0,.45)"; ctx.beginPath(); ctx.arc(it.x,it.y,20,0,Math.PI*2); ctx.fill(); }
+      emoji(it.kind==="broc"?"🥦":"🍪",it.x,it.y,it.kind==="gold"?32:28,it.rot);
+    });
+    // car
+    ctx.save(); ctx.translate(px,carY);
+    ctx.fillStyle="#ffcc00"; ctx.beginPath(); ctx.arc(-12,-14,8,0,Math.PI*2); ctx.arc(12,-14,8,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle="#1d1b1a"; ctx.beginPath(); ctx.roundRect?ctx.roundRect(-CAR_W/2,-10,CAR_W,20,6):ctx.rect(-CAR_W/2,-10,CAR_W,20); ctx.fill();
+    ctx.fillStyle="#e10915"; ctx.fillRect(-CAR_W/2,-10,CAR_W,5);
+    ctx.fillStyle="#333"; ctx.beginPath(); ctx.arc(-22,11,5,0,Math.PI*2); ctx.arc(22,11,5,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+    if(flash>0){ ctx.fillStyle=`rgba(225,9,21,${flash/40})`; ctx.fillRect(0,0,W,H); }
+    // HUD
+    ctx.fillStyle=dark?"#fff":"#1d1b1a"; ctx.font="bold 16px Inter,system-ui,sans-serif"; ctx.textBaseline="alphabetic";
+    ctx.textAlign="left"; ctx.fillText("Score: "+score,12,34);
+    ctx.textAlign="center"; ctx.fillStyle="#e10915"; ctx.fillText("♥".repeat(Math.max(0,lives))+"♡".repeat(3-Math.max(0,lives)),W/2,34);
+    ctx.fillStyle=dark?"#fff":"#1d1b1a"; ctx.textAlign="right"; ctx.fillText("Best: "+state.bestCookie,W-12,34);
+    popups.forEach(p=>{ ctx.globalAlpha=Math.min(1,p.life/25); ctx.fillStyle=p.c; ctx.font="bold 18px Inter,system-ui,sans-serif"; ctx.textAlign="center"; ctx.fillText(p.txt,p.x,p.y); ctx.globalAlpha=1; });
+    if(!running){
+      ctx.fillStyle="rgba(0,0,0,.45)"; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.font="bold 22px Inter,system-ui,sans-serif";
+      ctx.fillText(over?`Game over! ${score} points`:"Catch the Cookies 🍪",W/2,H/2-14);
+      ctx.font="15px Inter,system-ui,sans-serif"; ctx.fillText(over?"Tap to play again":"Tap to start",W/2,H/2+14);
+    }
+  }
+  const toX=e=>{ const r=cv.getBoundingClientRect(); return e.clientX-r.left; };
+  cv.addEventListener("pointerdown",e=>{ e.preventDefault(); if(!running){ start(); } px=toX(e); });
+  cv.addEventListener("pointermove",e=>{ if(running) px=toX(e); });
+  window.addEventListener("keydown",e=>{ if(activeTab!=="cookie"||typing()) return;
+    if(e.code==="ArrowLeft"||e.code==="ArrowRight"){ if(running) e.preventDefault(); keys[e.code]=true; }
+    if(e.code==="Space"&&!running){ e.preventDefault(); start(); } });
+  window.addEventListener("keyup",e=>{ keys[e.code]=false; });
+  GAMES.cookie={ show:resize, hide(){ if(running){ running=false; over=false; draw(); } } };
+})();
+
+/* Coaster Memory */
+const MEM_SYMBOLS=["🎢","🎡","🎠","🍪","🎟️","🌊","🦇","🐍"];
+let memDeck=[], memOpen=[], memMatched=0, memMoves=0, memLock=false;
+function updateMemBest(){ document.getElementById("memBest").textContent=state.bestMemory?state.bestMemory+" moves":"–"; }
+function newMemory(){
+  memDeck=[...MEM_SYMBOLS,...MEM_SYMBOLS].map(v=>({v,r:Math.random()})).sort((a,b)=>a.r-b.r).map(o=>o.v);
+  memOpen=[]; memMatched=0; memMoves=0; memLock=false;
+  const grid=document.getElementById("memGrid"); grid.innerHTML="";
+  memDeck.forEach((v,i)=>{ const b=document.createElement("button"); b.type="button"; b.className="mem-card"; b.dataset.i=i; b.setAttribute("aria-label","Hidden card"); grid.appendChild(b); });
+  document.getElementById("memMsg").textContent="Find all 8 pairs with as few moves as possible.";
+  updateMem();
+}
+function updateMem(){ document.getElementById("memMoves").textContent=memMoves; document.getElementById("memPairs").textContent=memMatched+"/8"; updateMemBest(); }
+document.getElementById("memGrid").addEventListener("click",e=>{
+  const b=e.target.closest(".mem-card"); if(!b||memLock||b.classList.contains("open")||b.classList.contains("matched")) return;
+  b.classList.add("open"); b.innerHTML=`<span>${memDeck[b.dataset.i]}</span>`; b.setAttribute("aria-label",memDeck[b.dataset.i]);
+  memOpen.push(b);
+  if(memOpen.length===2){
+    memMoves++;
+    const [a,c]=memOpen;
+    if(memDeck[a.dataset.i]===memDeck[c.dataset.i]){
+      a.classList.replace("open","matched"); c.classList.replace("open","matched"); memOpen=[]; memMatched++;
+      if(memMatched===8){
+        const rec=!state.bestMemory||memMoves<state.bestMemory;
+        if(rec){ state.bestMemory=memMoves; save(); }
+        document.getElementById("memMsg").textContent=`🎉 Done in ${memMoves} moves!${rec?" New best!":""}`;
+      }
+    } else {
+      memLock=true;
+      setTimeout(()=>{ memOpen.forEach(x=>{ x.classList.remove("open"); x.innerHTML=""; x.setAttribute("aria-label","Hidden card"); }); memOpen=[]; memLock=false; },750);
+    }
+    updateMem();
+  }
+});
+document.getElementById("memNew").addEventListener("click",newMemory);
+GAMES.memory={ show(){}, hide(){} };
 
 /* ---------- Events ---------- */
 document.getElementById("eventName").textContent=EVENT_NAME;
@@ -535,6 +762,12 @@ document.getElementById("importFile").addEventListener("change",e=>{ if(e.target
 document.getElementById("resetBtn").addEventListener("click",()=>{
   if(confirm("Delete all rides, ratings and recap answers?")){ state.counts={}; state.stars={}; state.day=0; state.recap={}; save(); render(); }
 });
+function setAll(open){ document.querySelectorAll("details.area").forEach(d=>{ d.open=open; state.open[d.dataset.area]=open; }); save(); }
+document.getElementById("expandBtn").addEventListener("click",()=>setAll(true));
+document.getElementById("collapseBtn").addEventListener("click",()=>setAll(false));
+let printOpen=[];
+window.addEventListener("beforeprint",()=>{ searching=true; printOpen=[...document.querySelectorAll("details.area")].map(d=>d.open); document.querySelectorAll("details.area").forEach(d=>d.open=true); });
+window.addEventListener("afterprint",()=>{ document.querySelectorAll("details.area").forEach((d,i)=>d.open=printOpen[i]); setTimeout(()=>searching=false,0); });
 const areaSel=document.getElementById("addArea");
 AREAS.forEach(a=>areaSel.add(new Option(a.name,a.id)));
 document.getElementById("addForm").addEventListener("submit",e=>{
@@ -544,7 +777,7 @@ document.getElementById("addForm").addEventListener("submit",e=>{
   document.getElementById("addName").value=""; save(); render();
 });
 
-load(); nameInput.value=state.name; render();
+load(); nameInput.value=state.name; render(); newMemory();
 if(SONG_URL){ usingDefault=true; setSong(SONG_URL,SONG_TITLE); } else loadStoredSong();
 </script>
 </body>
