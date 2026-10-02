@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phantasialand Recap</title>
+<style>
+  :root{
+    --bg:#f6f4f2; --card:#fff; --text:#1d1b1a; --muted:#6b6560; --line:#e5e0da;
+    --accent:#d0021b; --star:#f2b01e; --chip:#f0ebe6;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#141312; --card:#1e1c1a; --text:#f0ece8; --muted:#a39d96; --line:#34302c; --chip:#2a2724; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  header{background:linear-gradient(135deg,#8f0012,#d0021b 60%,#e8452c);color:#fff;padding:26px 16px 22px}
+  header .event{display:inline-block;background:rgba(255,255,255,.18);border-radius:999px;padding:3px 12px;font-size:.85rem;margin-bottom:8px}
+  header h1{margin:0 0 4px;font-size:1.8rem}
+  header p{margin:0;opacity:.92;font-size:1.05rem}
+  .wrap{max-width:900px;margin:0 auto;padding:0 16px}
+  .player-name{margin-top:14px;display:flex}
+  .player-name input{flex:1;border:none}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .stat{background:rgba(255,255,255,.15);border-radius:10px;padding:8px 12px;min-width:110px}
+  .stat b{display:block;font-size:1.3rem}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:16px}
+  .card h2{margin:0 0 10px;font-size:1.2rem}
+  .music{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .music .title{flex:1;min-width:140px;font-size:.9rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .music .title b{color:var(--text)}
+  .music input[type=range]{width:100px}
+
+  .recap label{display:block;font-weight:600;margin:10px 0 4px;font-size:.95rem}
+  .recap textarea,.recap input[type=text]{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);resize:vertical}
+
+  .game canvas{width:100%;height:260px;display:block;border-radius:10px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer}
+  .game .hint{font-size:.85rem;color:var(--muted);margin:8px 0 0}
+
+  .toolbar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0;margin-top:16px}
+  .toolbar .wrap{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  input[type=search],input[type=text],select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text)}
+  input[type=search]{flex:1;min-width:160px}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:8px;padding:8px 12px}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button:hover{filter:brightness(.97)}
+
+  section.area{margin:22px 0}
+  .area h2{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:1.2rem}
+  .area h2 small{color:var(--muted);font-weight:normal;font-size:.85rem;margin-left:auto}
+  .ride{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;flex-wrap:wrap}
+  .ride.done{border-left:4px solid var(--accent)}
+  .info{flex:1;min-width:160px}
+  .info .name{font-weight:600}
+  .info .type{font-size:.8rem;color:var(--muted);background:var(--chip);border-radius:6px;padding:1px 6px;display:inline-block;margin-top:2px}
+  .counter{display:flex;align-items:center;gap:6px}
+  .counter button{width:34px;height:34px;padding:0;border-radius:50%;font-size:1.1rem;line-height:1}
+  .counter input{width:52px;text-align:center;padding:6px;font:inherit;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text)}
+  .stars{display:flex;gap:2px}
+  .stars button{border:none;background:none;padding:2px;font-size:1.45rem;line-height:1;color:var(--line)}
+  .stars button.on{color:var(--star)}
+  .del{border:none;background:none;color:var(--muted);font-size:1.1rem;padding:4px}
+  .add{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:14px;margin:26px 0;display:flex;gap:8px;flex-wrap:wrap}
+  .add input{flex:1;min-width:150px}
+  footer{color:var(--muted);font-size:.85rem;text-align:center;padding:24px 16px 40px}
+  .hidden{display:none!important}
+  @media print{
+    .toolbar,.add,.music-card,.game,.counter button,.del,footer{display:none!important}
+    header{background:none;color:#000}
+    .ride{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="event" id="eventName"></span>
+    <h1>🎢 Phantasialand Recap</h1>
+    <p>How was your day? What did you do?</p>
+    <div class="player-name">
+      <input type="text" id="playerName" placeholder="Your name / team">
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="sRides">0</b>Total rides</div>
+      <div class="stat"><b id="sDone">0</b>Attractions ridden</div>
+      <div class="stat"><b id="sAvg">–</b>Avg. rating</div>
+      <div class="stat"><b id="sTop">–</b>Favourite ride</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card music-card">
+    <div class="music">
+      <button type="button" id="playBtn" class="primary">▶ Play</button>
+      <div class="title" id="songTitle">No song loaded</div>
+      <input type="range" id="volume" min="0" max="1" step="0.05" value="0.6" aria-label="Volume">
+      <button type="button" id="uploadSongBtn">🎵 Upload song</button>
+      <input type="file" id="songFile" accept="audio/*" class="hidden">
+      <audio id="audio" loop></audio>
+    </div>
+  </div>
+
+  <div class="card recap">
+    <h2>📝 Your day</h2>
+    <label>Rate your day overall</label>
+    <div class="stars" id="dayStars"></div>
+    <label for="qHighlight">What was your highlight?</label>
+    <textarea id="qHighlight" rows="2" placeholder="The moment you'll remember…"></textarea>
+    <label for="qFunny">Funniest moment?</label>
+    <textarea id="qFunny" rows="2" placeholder="Something that made you laugh…"></textarea>
+    <label for="qScary">Scariest ride?</label>
+    <input type="text" id="qScary" placeholder="Be honest 😅">
+    <label for="qWords">Your day in three words</label>
+    <input type="text" id="qWords" placeholder="e.g. loud, wet, legendary">
+  </div>
+
+  <div class="card game">
+    <h2>🎮 Mini-game: Spin Coaster</h2>
+    <canvas id="game"></canvas>
+    <p class="hint">Tap / Space = jump over the gaps · Hold in the air = spin · Land upright! Every full spin = +100 points.</p>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="wrap">
+    <input type="search" id="search" placeholder="Search attractions…">
+    <select id="filter">
+      <option value="all">All</option>
+      <option value="done">Ridden</option>
+      <option value="open">Not ridden yet</option>
+    </select>
+    <select id="exportFormat">
+      <option value="csv">CSV (Excel)</option>
+      <option value="json">JSON (backup)</option>
+      <option value="txt">Text</option>
+      <option value="print">Print / PDF</option>
+    </select>
+    <button class="primary" id="exportBtn">Export</button>
+    <button id="importBtn">Import</button>
+    <button id="resetBtn">Reset</button>
+    <input type="file" id="importFile" accept=".json" class="hidden">
+  </div>
+</div>
+
+<main class="wrap" id="list"></main>
+
+<div class="wrap">
+  <form class="add" id="addForm">
+    <input type="text" id="addName" placeholder="Add your own attraction" required>
+    <select id="addArea"></select>
+    <button class="primary" type="submit">Add</button>
+  </form>
+</div>
+
+<footer>Unofficial recap page for a company outing – not affiliated with Phantasialand. Your data is stored only in your own browser.</footer>
+
+<script>
+/* ===================== SETTINGS ===================== */
+const EVENT_NAME = "Kaufland Company Event 2026";
+// Put your audio file next to index.html in the GitHub repo with exactly this name:
+const SONG_URL   = "song.mp3";
+const SONG_TITLE = "Event song";
+/* ==================================================== */
+
+const AREAS = [
+  { id:"berlin",   name:"Berlin",        icon:"🏛️", rides:[
+      ["Maus au Chocolat","Dark ride"],
+      ["The 3 Mouseketeers (Residenz Theater)","4D cinema"],
+      ["Horse Carousel","Carousel"] ]},
+  { id:"rookburgh",name:"Rookburgh",     icon:"⚙️", rides:[
+      ["F.L.Y.","Roller coaster"] ]},
+  { id:"china",    name:"China Town",    icon:"🏮", rides:[
+      ["Feng Ju Palace","Themed ride"],
+      ["Geister Rikscha","Dark ride"] ]},
+  { id:"africa",   name:"Deep in Africa",icon:"🌍", rides:[
+      ["Black Mamba","Roller coaster"],
+      ["Deep in Africa: Adventure Trail","Adventure trail"] ]},
+  { id:"mexico",   name:"Mexico",        icon:"🌵", rides:[
+      ["Chiapas","Water ride"],
+      ["Colorado Adventure","Roller coaster"],
+      ["Talocan","Thrill ride"],
+      ["Tikal","Drop tower"] ]},
+  { id:"mystery",  name:"Mystery & Klugheim", icon:"🗿", rides:[
+      ["Taron","Roller coaster"],
+      ["Raik","Roller coaster"],
+      ["Mystery Castle","Drop tower"],
+      ["River Quest","Water ride"] ]},
+  { id:"fantasy",  name:"Fantasy & Wuze Town", icon:"🧚", rides:[
+      ["Winja's Fear","Roller coaster"],
+      ["Winja's Force","Roller coaster"],
+      ["Crazy Bats","Roller coaster (VR)"],
+      ["Das verrückte Hotel Tartüff","Dark ride"],
+      ["Avoras","Themed ride"],
+      ["Wakobato","Water ride"],
+      ["Würmling Express","Themed ride"],
+      ["Wellenflug","Swing ride"],
+      ["Bumper Klumpen","Bumper cars"],
+      ["Tittle Tattle Tree","Kids ride"],
+      ["Bolles Flugschule","Kids ride"],
+      ["Bolles Riesenrad","Ferris wheel"],
+      ["Wözl's Wassertreter","Kids ride"],
+      ["Wözl's Duck Washer","Kids ride"],
+      ["Wolke's Luftpost","Kids ride"],
+      ["Wubi's Wabi Wipper","Kids ride"],
+      ["Wirtl's Taubenturm","Kids ride"],
+      ["Die fröhliche Bienchenjagd","Kids ride"],
+      ["Der lustige Papagei","Kids ride"] ]},
+  { id:"shows",    name:"Shows",         icon:"🎭", rides:[
+      ["Jump","Show"],
+      ["Tiempo de Fuego","Show"],
+      ["Nobis","Show"],
+      ["Rock on Ice (winter)","Show"] ]}
+];
+
+const KEY = "phl-recap-v1";
+const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,"-");
+let state = { name:"", counts:{}, stars:{}, custom:[], day:0, recap:{}, best:0 };
+const RECAP_Q = [
+  ["qHighlight","Highlight"], ["qFunny","Funniest moment"],
+  ["qScary","Scariest ride"], ["qWords","Day in three words"] ];
+
+function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s) state=Object.assign(state,s); }catch(e){} }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} updateStats(); }
+
+/* ---------- Ride list ---------- */
+function allRides(){
+  const out=[];
+  AREAS.forEach(a=>{
+    a.rides.forEach(([name,type])=>out.push({id:a.id+":"+slug(name),name,type,area:a}));
+    state.custom.filter(c=>c.area===a.id).forEach(c=>out.push({id:c.id,name:c.name,type:"Custom",area:a,custom:true}));
+  });
+  return out;
+}
+function render(){
+  const list=document.getElementById("list"); list.innerHTML="";
+  AREAS.forEach(a=>{
+    const sec=document.createElement("section");
+    sec.className="area";
+    sec.innerHTML=`<h2>${a.icon} ${a.name}<small></small></h2>`;
+    allRides().filter(r=>r.area.id===a.id).forEach(r=>sec.appendChild(rideRow(r)));
+    list.appendChild(sec);
+  });
+  applyFilter(); updateStats(); renderRecap();
+}
+function starButtons(n){ return [1,2,3,4,5].map(i=>`<button type="button" data-star="${i}" class="${i<=n?"on":""}" aria-label="${i} stars">★</button>`).join(""); }
+function rideRow(r){
+  const row=document.createElement("div");
+  row.className="ride"; row.dataset.id=r.id; row.dataset.name=r.name.toLowerCase();
+  const count=state.counts[r.id]||0, stars=state.stars[r.id]||0;
+  row.innerHTML=`
+    <div class="info"><div class="name"></div><span class="type"></span></div>
+    <div class="counter">
+      <button type="button" data-act="minus" aria-label="less">−</button>
+      <input type="number" min="0" value="${count}" aria-label="Number of rides">
+      <button type="button" data-act="plus" aria-label="more">+</button>
+    </div>
+    <div class="stars">${starButtons(stars)}</div>
+    ${r.custom?'<button type="button" class="del" data-act="del" title="Remove">✕</button>':""}`;
+  row.querySelector(".name").textContent=r.name;
+  row.querySelector(".type").textContent=r.type;
+  row.classList.toggle("done",count>0);
+  const input=row.querySelector("input");
+  const setCount=v=>{ v=Math.max(0,parseInt(v)||0); input.value=v; state.counts[r.id]=v; row.classList.toggle("done",v>0); save(); applyFilter(); };
+  row.addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    if(b.dataset.act==="plus") setCount(+input.value+1);
+    if(b.dataset.act==="minus") setCount(+input.value-1);
+    if(b.dataset.star){
+      const n=+b.dataset.star; state.stars[r.id]=(state.stars[r.id]===n)?0:n;
+      row.querySelectorAll(".stars button").forEach(s=>s.classList.toggle("on",+s.dataset.star<=state.stars[r.id]));
+      save();
+    }
+    if(b.dataset.act==="del" && confirm(`Remove "${r.name}"?`)){
+      state.custom=state.custom.filter(c=>c.id!==r.id);
+      delete state.counts[r.id]; delete state.stars[r.id]; save(); render();
+    }
+  });
+  input.addEventListener("change",()=>setCount(input.value));
+  return row;
+}
+function applyFilter(){
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  const f=document.getElementById("filter").value;
+  document.querySelectorAll("section.area").forEach(sec=>{
+    let visible=0,rides=0,done=0; const rows=sec.querySelectorAll(".ride");
+    rows.forEach(row=>{
+      const c=state.counts[row.dataset.id]||0; rides+=c; if(c>0) done++;
+      const show=row.dataset.name.includes(q)&&(f==="all"||(f==="done"&&c>0)||(f==="open"&&c===0));
+      row.classList.toggle("hidden",!show); if(show) visible++;
+    });
+    sec.classList.toggle("hidden",visible===0);
+    sec.querySelector("small").textContent=`${done}/${rows.length} ridden · ${rides} rides`;
+  });
+}
+function updateStats(){
+  const rides=allRides(); let total=0,done=0,sSum=0,sN=0,top=null;
+  rides.forEach(r=>{
+    const c=state.counts[r.id]||0,s=state.stars[r.id]||0;
+    total+=c; if(c>0) done++; if(s){sSum+=s;sN++;}
+    if(c>0&&(!top||s>top.s||(s===top.s&&c>top.c))) top={name:r.name,s,c};
+  });
+  document.getElementById("sRides").textContent=total;
+  document.getElementById("sDone").textContent=`${done}/${rides.length}`;
+  document.getElementById("sAvg").textContent=sN?(sSum/sN).toFixed(1)+" ★":"–";
+  document.getElementById("sTop").textContent=top?top.name:"–";
+}
+
+/* ---------- Recap questions ---------- */
+const dayStars=document.getElementById("dayStars");
+function renderRecap(){
+  dayStars.innerHTML=starButtons(state.day);
+  RECAP_Q.forEach(([id])=>document.getElementById(id).value=state.recap[id]||"");
+}
+dayStars.addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  const n=+b.dataset.star; state.day=(state.day===n)?0:n; dayStars.innerHTML=starButtons(state.day); save();
+});
+RECAP_Q.forEach(([id])=>document.getElementById(id).addEventListener("input",e=>{ state.recap[id]=e.target.value; save(); }));
+
+/* ---------- Export / Import ---------- */
+function download(name,content,type){
+  const blob=new Blob([content],{type}); const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function exportData(){
+  const fmt=document.getElementById("exportFormat").value;
+  const date=new Date().toISOString().slice(0,10);
+  const who=state.name||"participant";
+  const file=`phantasialand-recap-${slug(who)}-${date}`;
+  const rows=allRides().map(r=>({area:r.area.name,attraction:r.name,type:r.type,rides:state.counts[r.id]||0,stars:state.stars[r.id]||0}));
+  const recap=[["Day rating",state.day+"/5"]].concat(RECAP_Q.map(([id,label])=>[label,state.recap[id]||""])).concat([["Spin Coaster best score",state.best]]);
+  if(fmt==="csv"){
+    const esc=v=>`"${String(v).replace(/"/g,'""')}"`;
+    const lines=[["Event",EVENT_NAME],["Name",who],["Date",date]].concat(recap).map(r=>r.map(esc).join(";"));
+    lines.push("","Area;Attraction;Type;Rides;Stars");
+    rows.forEach(r=>lines.push([r.area,r.attraction,r.type,r.rides,r.stars].map(esc).join(";")));
+    download(file+".csv","\uFEFF"+lines.join("\r\n"),"text/csv;charset=utf-8");
+  } else if(fmt==="json"){
+    download(file+".json",JSON.stringify({event:EVENT_NAME,name:who,exported:date,recap:Object.fromEntries(recap),state,list:rows},null,2),"application/json");
+  } else if(fmt==="txt"){
+    let txt=`PHANTASIALAND RECAP – ${EVENT_NAME}\n${who} · ${date}\n\n`;
+    recap.forEach(([k,v])=>{ if(v!==""&&v!=="0/5") txt+=`${k}: ${v}\n`; });
+    let last="";
+    rows.filter(r=>r.rides>0||r.stars>0).forEach(r=>{
+      if(r.area!==last){ txt+=`\n== ${r.area} ==\n`; last=r.area; }
+      txt+=`${r.attraction}: ${r.rides}x ${"★".repeat(r.stars)}${"☆".repeat(5-r.stars)}\n`;
+    });
+    txt+=`\nTotal: ${rows.reduce((a,r)=>a+r.rides,0)} rides\n`;
+    download(file+".txt",txt,"text/plain;charset=utf-8");
+  } else window.print();
+}
+function importData(file){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const d=JSON.parse(reader.result); const s=d.state||d; if(!s.counts) throw 0;
+      state=Object.assign({name:"",counts:{},stars:{},custom:[],day:0,recap:{},best:0},s);
+      document.getElementById("playerName").value=state.name;
+      save(); render(); alert("Import successful!");
+    }catch(e){ alert("Could not read this file. Please choose a JSON backup file."); }
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- Music player ---------- */
+const audio=document.getElementById("audio"), playBtn=document.getElementById("playBtn"),
+      songTitle=document.getElementById("songTitle"), vol=document.getElementById("volume");
+audio.volume=+vol.value;
+function setSong(src,title){
+  audio.src=src; songTitle.innerHTML=""; const b=document.createElement("b"); b.textContent="♪ "+title; songTitle.appendChild(b);
+}
+function updatePlayBtn(){ playBtn.textContent=audio.paused?"▶ Play":"⏸ Pause"; }
+function idb(){ return new Promise((res,rej)=>{ const r=indexedDB.open("phl-music",1);
+  r.onupgradeneeded=()=>r.result.createObjectStore("songs"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+async function storeSong(f){ try{ const db=await idb(); db.transaction("songs","readwrite").objectStore("songs").put(f,"current"); }catch(e){} }
+async function loadStoredSong(){
+  try{ const db=await idb(); const req=db.transaction("songs").objectStore("songs").get("current");
+    req.onsuccess=()=>{ const f=req.result; if(f) setSong(URL.createObjectURL(f), f.name||"Uploaded song"); };
+  }catch(e){}
+}
+let usingDefault=false;
+audio.addEventListener("error",()=>{ if(usingDefault){ usingDefault=false; audio.removeAttribute("src"); songTitle.textContent="No song loaded"; loadStoredSong(); } });
+playBtn.addEventListener("click",()=>{
+  if(!audio.getAttribute("src")){ document.getElementById("songFile").click(); return; }
+  audio.paused ? audio.play().catch(()=>{}) : audio.pause();
+});
+audio.addEventListener("play",updatePlayBtn); audio.addEventListener("pause",updatePlayBtn);
+vol.addEventListener("input",()=>audio.volume=+vol.value);
+document.getElementById("uploadSongBtn").addEventListener("click",()=>document.getElementById("songFile").click());
+document.getElementById("songFile").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f) return;
+  usingDefault=false; setSong(URL.createObjectURL(f), f.name); storeSong(f);
+  audio.play().catch(()=>{}); e.target.value="";
+});
+
+/* ---------- Mini-game: Spin Coaster ---------- */
+(function(){
+  const cv=document.getElementById("game"), ctx=cv.getContext("2d");
+  let W=600,H=260,dpr=1;
+  function resize(){ dpr=window.devicePixelRatio||1; W=cv.clientWidth; H=cv.clientHeight; cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); if(!running) draw(); }
+  window.addEventListener("resize",resize);
+
+  const CAR_X=90, G=0.45, JUMP=-9.2, SPIN=0.17;
+  let running=false, over=false, cam, speed, y, vy, ang, onGround, gaps, spun, bonus, popups, holding, holdStart, last;
+
+  const track=x=>H*0.66+28*Math.sin(x*0.004)+16*Math.sin(x*0.011+1);
+  const slope=x=>Math.atan2(track(x+2)-track(x-2),4);
+  const inGap=x=>gaps.some(g=>x>g.s&&x<g.e);
+  const norm=a=>{ a%=Math.PI*2; if(a>Math.PI)a-=Math.PI*2; if(a<-Math.PI)a+=Math.PI*2; return a; };
+
+  function reset(){
+    cam=0; speed=4; y=track(CAR_X); vy=0; ang=slope(CAR_X); onGround=true;
+    gaps=[]; spun=0; bonus=0; popups=[]; holding=false; over=false;
+    let x=700; for(let i=0;i<6;i++){ const w=70+Math.random()*50; gaps.push({s:x,e:x+w}); x+=w+380+Math.random()*350; }
+  }
+  function score(){ return Math.floor(cam/10)+bonus; }
+
+  function press(){
+    if(!running){ reset(); running=true; last=performance.now(); requestAnimationFrame(loop); return; }
+    holding=true; holdStart=performance.now();
+    if(onGround){ vy=JUMP; onGround=false; spun=0; }
+  }
+  function release(){ holding=false; }
+  cv.addEventListener("pointerdown",e=>{ e.preventDefault(); press(); });
+  window.addEventListener("pointerup",release);
+  window.addEventListener("keydown",e=>{ if(e.code==="Space" && document.activeElement.tagName!=="INPUT" && document.activeElement.tagName!=="TEXTAREA"){ e.preventDefault(); if(!e.repeat) press(); } });
+  window.addEventListener("keyup",e=>{ if(e.code==="Space") release(); });
+
+  function crash(){
+    running=false; over=true;
+    const s=score(); if(s>state.best){ state.best=s; save(); }
+    draw();
+  }
+
+  function loop(t){
+    if(!running) return;
+    const k=Math.min(3,(t-last)/16.67); last=t;
+    speed=Math.min(9,4+cam*0.0006);
+    cam+=speed*k;
+    const wx=cam+CAR_X;
+
+    // keep gaps coming
+    gaps=gaps.filter(g=>g.e>cam-50);
+    while(gaps.length<6){ const p=gaps[gaps.length-1]; const s=p.e+360+Math.random()*380+speed*20; gaps.push({s,e:s+70+Math.random()*(40+speed*6)}); }
+
+    const ty=track(wx);
+    if(onGround){
+      if(inGap(wx)){ onGround=false; vy=0; }
+      else { y=ty; ang=slope(wx); }
+    } else {
+      const prevY=y;
+      vy+=G*k; y+=vy*k;
+      if(holding && t-holdStart>140){ ang+=SPIN*k; spun+=SPIN*k; }
+      if(!inGap(wx) && y>=ty){
+        if(prevY>ty+6){ crash(); return; }               // hit the side of the gap
+        if(Math.abs(norm(ang-slope(wx)))>0.8){ crash(); return; } // landed upside down
+        const flips=Math.floor((spun+0.8)/(Math.PI*2));
+        if(flips>0){ bonus+=flips*100; popups.push({txt:flips>1?`${flips}× SPIN! +${flips*100}`:"SPIN! +100",x:CAR_X,y:y-40,life:60}); }
+        y=ty; vy=0; onGround=true; ang=slope(wx); spun=0;
+      }
+      if(y>H+40){ crash(); return; }
+    }
+    popups.forEach(p=>{p.life-=k;p.y-=0.6*k;}); popups=popups.filter(p=>p.life>0);
+    draw(); requestAnimationFrame(loop);
+  }
+
+  function draw(){
+    const dark=matchMedia("(prefers-color-scheme: dark)").matches;
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,dark?"#1b2340":"#8fd0ff"); g.addColorStop(1,dark?"#3a2b4a":"#ffe3c2");
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+    // distant hills
+    ctx.fillStyle=dark?"#2a2f45":"#bfe3c0";
+    ctx.beginPath(); ctx.moveTo(0,H);
+    for(let x=0;x<=W;x+=10) ctx.lineTo(x,H*0.55+20*Math.sin((x+(cam||0)*0.3)*0.01));
+    ctx.lineTo(W,H); ctx.fill();
+
+    if(!gaps){ reset(); }
+    // supports
+    ctx.strokeStyle=dark?"#6b6f80":"#8a8f99"; ctx.lineWidth=2;
+    const off=cam%40;
+    for(let sx=-off;sx<W;sx+=40){ const wx=cam+sx; if(inGap(wx)) continue; ctx.beginPath(); ctx.moveTo(sx,track(wx)+4); ctx.lineTo(sx,H); ctx.stroke(); }
+    // rails
+    ctx.strokeStyle="#d0021b"; ctx.lineWidth=5; ctx.lineCap="round";
+    ctx.beginPath(); let drawing=false;
+    for(let sx=0;sx<=W;sx+=4){
+      const wx=cam+sx;
+      if(inGap(wx)){ drawing=false; continue; }
+      const ty=track(wx);
+      if(!drawing){ ctx.moveTo(sx,ty); drawing=true; } else ctx.lineTo(sx,ty);
+    }
+    ctx.stroke();
+
+    // car
+    ctx.save(); ctx.translate(CAR_X,y); ctx.rotate(ang);
+    ctx.fillStyle="#ffcc00"; ctx.beginPath(); ctx.arc(-6,-24,7,0,Math.PI*2); ctx.fill();      // rider head
+    ctx.fillStyle="#ffcc00"; ctx.beginPath(); ctx.arc(10,-24,7,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle="#1d1b1a"; ctx.fillRect(-22,-20,44,16);                                      // body
+    ctx.fillStyle="#d0021b"; ctx.fillRect(-22,-20,44,5);
+    ctx.fillStyle="#333"; ctx.beginPath(); ctx.arc(-13,-3,4,0,Math.PI*2); ctx.arc(13,-3,4,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+
+    // HUD
+    ctx.fillStyle=dark?"#fff":"#1d1b1a"; ctx.font="bold 16px system-ui,sans-serif";
+    ctx.textAlign="left"; ctx.fillText("Score: "+score(),12,24);
+    ctx.textAlign="right"; ctx.fillText("Best: "+state.best,W-12,24);
+    popups.forEach(p=>{ ctx.globalAlpha=Math.min(1,p.life/30); ctx.textAlign="left"; ctx.fillStyle="#d0021b"; ctx.font="bold 18px system-ui,sans-serif"; ctx.fillText(p.txt,p.x-20,p.y); ctx.globalAlpha=1; });
+
+    if(!running){
+      ctx.fillStyle="rgba(0,0,0,.45)"; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle="#fff"; ctx.textAlign="center";
+      ctx.font="bold 22px system-ui,sans-serif";
+      ctx.fillText(over?`Crash! Score: ${score()}`:"Spin Coaster",W/2,H/2-14);
+      ctx.font="15px system-ui,sans-serif";
+      ctx.fillText(over?"Tap to ride again":"Tap to start",W/2,H/2+14);
+    }
+  }
+  resize();
+})();
+
+/* ---------- Events ---------- */
+document.getElementById("eventName").textContent=EVENT_NAME;
+const nameInput=document.getElementById("playerName");
+nameInput.addEventListener("input",()=>{ state.name=nameInput.value.trim(); save(); });
+document.getElementById("search").addEventListener("input",applyFilter);
+document.getElementById("filter").addEventListener("change",applyFilter);
+document.getElementById("exportBtn").addEventListener("click",exportData);
+document.getElementById("importBtn").addEventListener("click",()=>document.getElementById("importFile").click());
+document.getElementById("importFile").addEventListener("change",e=>{ if(e.target.files[0]) importData(e.target.files[0]); e.target.value=""; });
+document.getElementById("resetBtn").addEventListener("click",()=>{
+  if(confirm("Delete all rides, ratings and recap answers?")){ state.counts={}; state.stars={}; state.day=0; state.recap={}; save(); render(); }
+});
+const areaSel=document.getElementById("addArea");
+AREAS.forEach(a=>areaSel.add(new Option(a.name,a.id)));
+document.getElementById("addForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const name=document.getElementById("addName").value.trim(); if(!name) return;
+  state.custom.push({id:"custom:"+Date.now(),name,area:areaSel.value});
+  document.getElementById("addName").value=""; save(); render();
+});
+
+load(); nameInput.value=state.name; render();
+if(SONG_URL){ usingDefault=true; setSong(SONG_URL,SONG_TITLE); } else loadStoredSong();
+</script>
+</body>
+</html>
