@@ -35,7 +35,19 @@
   header .event{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 12px;font-size:.8rem;letter-spacing:.02em;margin-bottom:10px}
   header h1{margin:0 0 4px;font-size:2.1rem;font-weight:800;letter-spacing:-.01em}
   header p{margin:0;opacity:.88;font-size:1.05rem}
-  .player-name{margin-top:16px;display:flex}
+  .player-name{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+  .player-name input[type=date]{flex:0 0 auto;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;color-scheme:dark;font:inherit;padding:8px 10px;border-radius:10px}
+  .del-visit{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3);color:#fff}
+  .visits{display:flex;align-items:stretch;gap:6px;overflow-x:auto;margin-top:16px;padding-bottom:2px;scrollbar-width:none}
+  .visits::-webkit-scrollbar{display:none}
+  .vtab{flex:none;display:flex;flex-direction:column;align-items:flex-start;gap:0;line-height:1.2;text-align:left;padding:6px 12px;border-radius:12px;
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff;font-size:.85rem;max-width:180px}
+  .vtab small{opacity:.75;font-size:.72rem}
+  .vtab span{max-width:156px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+  .vtab.active{background:#fff;color:#1e1b2e;border-color:#fff}
+  .vtab{justify-content:center;min-height:0;height:auto}
+  .vtab.vadd{flex:none;width:44px;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;padding:0;position:sticky;right:0;background:#e10915;border-color:#e10915;box-shadow:-8px 0 12px rgba(31,27,61,.35)}
+  .visit-sum{font-size:.8rem;opacity:.8;margin-top:8px}
   .player-name input{flex:1;border:1px solid rgba(255,255,255,.3)!important;background:rgba(255,255,255,.12)!important;color:#fff!important}
   .player-name input::placeholder{color:rgba(255,255,255,.7)}
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px}
@@ -163,9 +175,13 @@
     <span class="event" id="eventName"></span>
     <h1>🎢 Phantasialand Recap</h1>
     <p>How was your day? What did you do?</p>
+    <div class="visits" id="visitTabs" role="tablist" aria-label="Visits"></div>
     <div class="player-name">
       <input type="text" id="playerName" placeholder="Your name / team">
+      <input type="date" id="visitDate" aria-label="Visit date">
+      <button type="button" id="delVisit" class="del-visit" title="Delete this visit">🗑</button>
     </div>
+    <div class="visit-sum" id="visitSum"></div>
     <div class="stats">
       <div class="stat"><b id="sRides">0</b>Total rides</div>
       <div class="stat"><b id="sDone">0</b>Attractions ridden</div>
@@ -271,6 +287,7 @@
 <script>
 /* ===================== SETTINGS ===================== */
 const EVENT_NAME = "Kaufland Company Event 2026";
+const EVENT_DATE = "2026-10-02";   // date of the event visit (YYYY-MM-DD) – used for the first visit
 // Put your audio file next to index.html in the GitHub repo with exactly this name:
 const SONG_URL   = "song.mp3";
 const SONG_TITLE = "Event song";
@@ -326,15 +343,61 @@ const AREAS = [
       ["Rock on Ice (winter)","Show"] ]}
 ];
 
-const KEY = "phl-recap-v1";
+const KEY = "phl-recap-v2", OLD_KEY = "phl-recap-v1";
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,"-");
-let state = { name:"", counts:{}, stars:{}, custom:[], day:0, recap:{}, best:0, bestCookie:0, bestMemory:0, open:{} };
+const today = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const blankVisit = (name="",date=today()) => ({ id:"v"+Date.now().toString(36)+Math.random().toString(36).slice(2,6), name, date, counts:{}, stars:{}, day:0, recap:{} });
+let store = { visits:[], current:null, custom:[], best:0, bestCookie:0, bestMemory:0, open:{} };
+function cur(){ return store.visits.find(v=>v.id===store.current) || store.visits[0]; }
+// "state" = the current visit + shared settings, so the rest of the code can stay simple
+const state = {};
+["name","date","counts","stars","day","recap"].forEach(k=>Object.defineProperty(state,k,{enumerable:true,get(){return cur()[k];},set(v){cur()[k]=v;}}));
+["custom","best","bestCookie","bestMemory","open"].forEach(k=>Object.defineProperty(state,k,{enumerable:true,get(){return store[k];},set(v){store[k]=v;}}));
 const RECAP_Q = [
   ["qHighlight","Highlight"], ["qFunny","Funniest moment"],
   ["qScary","Scariest ride"], ["qWords","Day in three words"] ];
 
-function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s) state=Object.assign(state,s); }catch(e){} }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} updateStats(); }
+function visitFrom(o){ return Object.assign(blankVisit(), {name:o.name||"",date:o.date||today(),counts:o.counts||{},stars:o.stars||{},day:o.day||0,recap:o.recap||{}}, o.id?{id:o.id}:{}); }
+function load(){
+  try{
+    const s=JSON.parse(localStorage.getItem(KEY));
+    if(s&&s.visits&&s.visits.length) store=Object.assign(store,s);
+    else{
+      const old=JSON.parse(localStorage.getItem(OLD_KEY)); // take over data from the earlier version
+      if(old&&old.counts){ store.visits=[visitFrom(Object.assign({date:EVENT_DATE},old))]; ["custom","best","bestCookie","bestMemory","open"].forEach(k=>{ if(old[k]!=null) store[k]=old[k]; }); }
+    }
+  }catch(e){}
+  if(!store.visits.length) store.visits=[blankVisit("",EVENT_DATE)];
+  if(!store.fixedDate2){ const f=store.visits[0]; if(f&&["2026-10-01","2026-10-03"].includes(f.date)) f.date=EVENT_DATE; store.fixedDate2=true; }
+  if(!store.visits.some(v=>v.id===store.current)) store.current=store.visits[store.visits.length-1].id;
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} updateStats(); renderVisits(); }
+
+/* ---------- Visits (tabs) ---------- */
+const fmtDate=d=>{ if(!d) return "No date"; const x=new Date(d+"T12:00:00"); return isNaN(x)?d:x.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}); };
+function renderVisits(){
+  const bar=document.getElementById("visitTabs"); if(!bar) return;
+  bar.innerHTML="";
+  store.visits.forEach((v,i)=>{
+    const b=document.createElement("button"); b.type="button"; b.className="vtab"+(v.id===cur().id?" active":"");
+    b.setAttribute("role","tab"); b.dataset.id=v.id;
+    const n=document.createElement("span"); n.textContent=v.name||("Visit "+(i+1));
+    const d=document.createElement("small"); d.textContent=fmtDate(v.date);
+    b.append(n,d); bar.appendChild(b);
+  });
+  const add=document.createElement("button"); add.type="button"; add.className="vtab vadd"; add.id="addVisit"; add.title="Add a visit"; add.textContent="+";
+  bar.appendChild(add);
+  const all=store.visits.reduce((a,v)=>a+Object.values(v.counts).reduce((x,y)=>x+(+y||0),0),0);
+  document.getElementById("visitSum").textContent=store.visits.length>1?`${store.visits.length} visits · ${all} rides in total`:"";
+  document.getElementById("delVisit").classList.toggle("hidden",store.visits.length<2);
+}
+function switchVisit(id){
+  store.current=id; save();
+  document.getElementById("playerName").value=state.name;
+  document.getElementById("visitDate").value=state.date||"";
+  render();
+  const a=document.querySelector(".vtab.active"); if(a) a.scrollIntoView({inline:"nearest",block:"nearest"});
+}
 
 /* ---------- Ride list ---------- */
 function allRides(){
@@ -458,7 +521,7 @@ function download(name,content,type){
 }
 function exportData(){
   const fmt=document.getElementById("exportFormat").value;
-  const date=new Date().toISOString().slice(0,10);
+  const date=state.date||today();
   const who=state.name||"participant";
   const file=`phantasialand-recap-${slug(who)}-${date}`;
   const rows=allRides().map(r=>({area:r.area.name,attraction:r.name,type:r.type,rides:state.counts[r.id]||0,stars:state.stars[r.id]||0}));
@@ -470,7 +533,7 @@ function exportData(){
     rows.forEach(r=>lines.push([r.area,r.attraction,r.type,r.rides,r.stars].map(esc).join(";")));
     download(file+".csv","\uFEFF"+lines.join("\r\n"),"text/csv;charset=utf-8");
   } else if(fmt==="json"){
-    download(file+".json",JSON.stringify({event:EVENT_NAME,name:who,exported:date,recap:Object.fromEntries(recap),state,list:rows},null,2),"application/json");
+    download(file+".json",JSON.stringify({event:EVENT_NAME,name:who,date,exported:today(),recap:Object.fromEntries(recap),visit:cur(),store,list:rows},null,2),"application/json");
   } else if(fmt==="txt"){
     let txt=`PHANTASIALAND RECAP – ${EVENT_NAME}\n${who} · ${date}\n\n`;
     recap.forEach(([k,v])=>{ if(v!==""&&v!=="0/5"&&v!==0&&v!=="–") txt+=`${k}: ${v}\n`; });
@@ -486,7 +549,7 @@ function exportData(){
 function escHtml(v){ return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function buildPrint(){
   const sheet=document.getElementById("printSheet");
-  const date=new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+  const date=state.date?new Date(state.date+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}):"";
   const rides=allRides();
   let total=0,done=0,sSum=0,sN=0,coasters=0,coastersDone=0,top=null;
   rides.forEach(r=>{ const c=state.counts[r.id]||0,s=state.stars[r.id]||0; total+=c; if(c>0)done++; if(s){sSum+=s;sN++;}
@@ -497,7 +560,7 @@ function buildPrint(){
   let h=`<div class="ps-head"><div>
       <span class="ps-pill">${escHtml(EVENT_NAME)}</span>
       <div class="ps-title">🎢 Phantasialand Recap</div>
-      <div class="ps-sub">${escHtml(state.name||"Participant")} · ${date}</div></div>
+      <div class="ps-sub">${escHtml(state.name||"Participant")}${date?" · "+date:""}</div></div>
     <div class="ps-day"><small>My day</small><div class="st"><span class="st-on">${"★".repeat(state.day)}</span><span class="st-off">${"★".repeat(5-state.day)}</span></div></div></div>
   <div class="ps-stats">
     <div class="ps-stat"><b>${total}</b><span>Total rides</span></div>
@@ -541,9 +604,24 @@ function importData(file){
   const reader=new FileReader();
   reader.onload=()=>{
     try{
-      const d=JSON.parse(reader.result); const s=d.state||d; if(!s.counts) throw 0;
-      state=Object.assign({name:"",counts:{},stars:{},custom:[],day:0,recap:{},best:0,bestCookie:0,bestMemory:0,open:{}},s); updateMemBest&&updateMemBest();
+      const d=JSON.parse(reader.result);
+      let added=[];
+      if(d.store&&d.store.visits){
+        d.store.visits.forEach(v=>{ const nv=visitFrom(v); const i=store.visits.findIndex(x=>x.id===nv.id); if(i>=0) store.visits[i]=nv; else store.visits.push(nv); added.push(nv.id); });
+        (d.store.custom||[]).forEach(c=>{ if(!store.custom.some(x=>x.id===c.id)) store.custom.push(c); });
+        ["best","bestCookie","bestMemory"].forEach(k=>{ store[k]=Math.max(store[k]||0,d.store[k]||0); });
+        if(d.store.bestMemory&&store.bestMemory) store.bestMemory=Math.min(...[d.store.bestMemory,store.bestMemory].filter(Boolean));
+      } else {
+        const s=d.state||d; if(!s.counts) throw 0;
+        const nv=visitFrom(Object.assign({},s,{id:null})); store.visits.push(nv); added.push(nv.id);
+        (s.custom||[]).forEach(c=>{ if(!store.custom.some(x=>x.id===c.id)) store.custom.push(c); });
+      }
+      if(!added.length) throw 0;
+      // drop an untouched empty visit so the import doesn't leave a blank tab behind
+      store.visits=store.visits.filter(v=>added.includes(v.id)||v.name||v.day||Object.keys(v.counts).some(k=>v.counts[k])||Object.values(v.recap).some(Boolean));
+      store.current=added[added.length-1]; updateMemBest();
       document.getElementById("playerName").value=state.name;
+      document.getElementById("visitDate").value=state.date||"";
       save(); render(); alert("Import successful!");
     }catch(e){ alert("Could not read this file. Please choose a JSON backup file."); }
   };
@@ -847,13 +925,27 @@ GAMES.memory={ show(){}, hide(){} };
 document.getElementById("eventName").textContent=EVENT_NAME;
 const nameInput=document.getElementById("playerName");
 nameInput.addEventListener("input",()=>{ state.name=nameInput.value.trim(); save(); });
+const dateInput=document.getElementById("visitDate");
+dateInput.addEventListener("change",()=>{ state.date=dateInput.value; save(); });
+document.getElementById("visitTabs").addEventListener("click",e=>{
+  const b=e.target.closest(".vtab"); if(!b) return;
+  if(b.id==="addVisit"){ const v=blankVisit(); store.visits.push(v); switchVisit(v.id); nameInput.focus(); return; }
+  if(b.dataset.id!==cur().id) switchVisit(b.dataset.id);
+});
+document.getElementById("delVisit").addEventListener("click",()=>{
+  if(store.visits.length<2) return;
+  const label=(state.name||"this visit")+(state.date?" ("+fmtDate(state.date)+")":"");
+  if(!confirm(`Delete ${label} with all its rides and answers?`)) return;
+  const i=store.visits.findIndex(v=>v.id===cur().id); store.visits.splice(i,1);
+  switchVisit(store.visits[Math.max(0,i-1)].id);
+});
 document.getElementById("search").addEventListener("input",applyFilter);
 document.getElementById("filter").addEventListener("change",applyFilter);
 document.getElementById("exportBtn").addEventListener("click",exportData);
 document.getElementById("importBtn").addEventListener("click",()=>document.getElementById("importFile").click());
 document.getElementById("importFile").addEventListener("change",e=>{ if(e.target.files[0]) importData(e.target.files[0]); e.target.value=""; });
 document.getElementById("resetBtn").addEventListener("click",()=>{
-  if(confirm("Delete all rides, ratings and recap answers?")){ state.counts={}; state.stars={}; state.day=0; state.recap={}; save(); render(); }
+  if(confirm("Delete all rides, ratings and recap answers of this visit?")){ state.counts={}; state.stars={}; state.day=0; state.recap={}; save(); render(); }
 });
 function setAll(open){ document.querySelectorAll("details.area").forEach(d=>{ d.open=open; state.open[d.dataset.area]=open; }); save(); }
 document.getElementById("expandBtn").addEventListener("click",()=>setAll(true));
@@ -867,7 +959,7 @@ document.getElementById("addForm").addEventListener("submit",e=>{
   document.getElementById("addName").value=""; save(); render();
 });
 
-load(); nameInput.value=state.name; render(); newMemory();
+load(); nameInput.value=state.name; dateInput.value=state.date||""; render(); renderVisits(); newMemory();
 if(SONG_URL){ usingDefault=true; setSong(SONG_URL,SONG_TITLE); } else loadStoredSong();
 </script>
 </body>
